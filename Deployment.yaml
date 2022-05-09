@@ -1,0 +1,61 @@
+apiVersion: apps/v1  
+
+kind: Deployment  
+
+metadata:  
+
+name: webserver 
+
+labels:  
+
+app: webserver  
+
+spec:  
+
+replicas: 2 
+
+template:  
+
+metadata:  
+
+labels:  
+
+app: webserver  
+
+spec:  
+
+containers:  
+
+- name: webserver  
+
+image: nguelewie/myapp:1.0 
+
+imagePullPolicy: Always  
+
+ports:  
+
+- containerPort: 8080 
+
+livenessProbe:  
+
+httpGet:  
+
+path: /  
+
+port: 80  
+
+initialDelaySeconds: 5  
+
+periodSeconds: 3  
+
+readinessProbe:  
+
+httpGet:  
+
+path: /  
+
+port: 80  
+
+initialDelaySeconds: 5  
+
+periodSeconds: 3 
