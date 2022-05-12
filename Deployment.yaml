@@ -1,60 +1,37 @@
-pipeline {
-    agent any
-    tools {
-       maven "M2_HOME"
-    }
- }
-    environment {
-    registry = "nguelewie100/myapp"
-    registryCredential = 'registryID'
-    }
-    stages {
-        stage('Clone sources') {
-            steps {
-                git url: "<code here>"
-            }
-        }
-
-        stage('SonarQube analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh "./mvn sonarqube"
-                }
-            }
-        }
-        stage("Quality gate") {
-            steps {
-                waitForQualityGate abortPipeline: true
-            }
-        }
-    stages {
-      stage ('build') {
-        steps {
-       sh "mvn clean"
-       sh "mvn install"
-       sh "mvn package"
-        }
-      
-      }
-      
-      stage ('test') {
-        steps {
-         echo "test step"
-        sh "mvn test"
-        
-        }
-      
-      }
-      
-      stage ('deploy') {
-        steps {
-          script {
-        docker.build registry + ":$BUILD_NUMBER"
-        }
-      
-        }
-      
-      }
-    
-    }
- } 
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: mongodb-webserver
+spec:
+  selector:
+    matchLabels:
+      app: webserver
+  replicas: 2 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: webserver 
+    spec:
+      containers:
+      - name: webserver
+        image: nguelewie/myapp:1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+            httpGet:
+              path: /heathz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 3
